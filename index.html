@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>전자기력 실험실</title>
+<link rel="stylesheet" href="css/app.css">
+<style>
+  /* 좁은 화면에서는 무대를 더 높게 잡는다 (자석 · 화살표가 위아래로 쌓이는 그림) */
+  @media (max-width: 720px) { canvas#stage { aspect-ratio: 0.85; } }
+</style>
+</head>
+<body>
+
+<div class="top">
+  <h1>🧲 전자기력 실험실</h1>
+  <span class="badge">중학교 2학년 과학 · 전기와 자기</span>
+  <span class="spacer"></span>
+  <a class="home" href="worksheet.html" target="ef-worksheet" data-win>📝 학습지 ↗</a>
+  <a class="home" href="teacher.html">선생님용 ▸</a>
+</div>
+
+<div class="wrap">
+
+  <div class="scenes" id="scenes">
+    <button type="button" class="scene-btn on" data-scene="field"><span class="em">🧭</span> 전류가 만드는 자기장</button>
+    <button type="button" class="scene-btn" data-scene="force"><span class="em">⚡</span> 도선이 받는 힘</button>
+    <button type="button" class="scene-btn" data-scene="motor"><span class="em">🌀</span> 전동기</button>
+    <button type="button" class="scene-btn" data-scene="mission"><span class="em">🏆</span> 미션 도전</button>
+  </div>
+
+  <div class="card hidden" id="missionCard">
+    <h2>🏆 미션 도전 <span class="step">깬 미션 <span id="missionScore">0 / 8</span></span></h2>
+    <p class="lead">먼저 <b>예측</b>하고, 실제로 <b>확인</b>하세요. 성공하면 이유가 열립니다.</p>
+    <div class="mission-list" id="missionList"></div>
+    <div class="mission-body hidden" id="missionBody">
+      <h3 id="mTitle"></h3>
+      <p id="mStory"></p>
+      <div class="predict hidden" id="mPredict">
+        <div class="q" id="mQ"></div>
+        <div class="opts" id="mOpts"></div>
+      </div>
+      <div class="predict hidden" id="mGoals"></div>
+      <div class="verdict hidden" id="mVerdict"></div>
+    </div>
+  </div>
+
+  <div class="stage-wrap">
+
+    <div>
+      <div class="playbar">
+        <span data-for="motor"><button type="button" class="btn primary" id="btnPlay">▶ 돌려 보기</button></span>
+        <button type="button" class="btn" id="btnReset">↺ 처음으로</button>
+        <button type="button" class="btn" id="btnRecord">📋 지금 값 기록</button>
+      </div>
+
+      <div class="stage">
+        <canvas id="stage"></canvas>
+        <div class="stage-tip" id="tip"></div>
+      </div>
+
+      <div class="card" style="margin-top:18px">
+        <h2>📋 실험 기록 <span class="step">학습지에 옮겨 적기</span></h2>
+        <p class="lead">궁금한 결과가 나오면 <b>📋 지금 값 기록</b>을 누르세요.</p>
+        <div class="tablescroll">
+          <table class="grid">
+            <thead>
+              <tr><th>번호</th><th>장면</th><th>조건</th><th>결과</th></tr>
+            </thead>
+            <tbody id="recBody"></tbody>
+          </table>
+        </div>
+        <p id="recEmpty" class="hint">아직 기록이 없습니다.</p>
+        <div class="btnrow"><button type="button" class="btn" id="btnClearRec">기록 지우기</button></div>
+      </div>
+
+      <div class="card">
+        <h2>🔎 무엇을 보고 있는 걸까?</h2>
+        <div class="hint">
+          <b>자기장</b> — 자기력이 작용하는 공간. 나침반 바늘의 <b>N극이 가리키는 방향</b>이 자기장의 방향입니다.<br>
+          <b>전자기력</b> — 자기장 속에서 전류가 흐르는 도선이 받는 힘.
+        </div>
+        <div class="warnbox">
+          <b>이 앱의 결론은 세 가지입니다.</b><br>
+          ① 전류가 흐르는 도선 <b>주위에도 자기장</b>이 생깁니다. (오른손 엄지 = 전류, 감아쥔 손 = 자기장)<br>
+          ② 자기장 속의 전류는 <b>힘</b>을 받습니다. 힘의 <b>방향</b>은 전류와 자기장의 방향이 정하고,
+             <b>크기</b>는 전류와 자기장의 세기에 <b>비례</b>합니다.
+             <b>하나만</b> 바꾸면 힘의 방향이 <b>뒤집히고</b>, <b>둘 다</b> 바꾸면 그대로입니다.<br>
+          ③ <b>전동기</b> — 코일의 두 변은 전류가 반대라 힘도 반대입니다. 그래서 코일이 <b>돕니다.</b>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="panel">
+        <h3 id="gaugeTitle">🧭 전류가 만드는 자기장</h3>
+        <p class="sub" id="gaugeSub">도선 둘레에 자기장이 생긴다</p>
+
+        <div class="readouts">
+          <div class="ro"><b id="roName1">전류</b><span id="roVal1">-</span><i id="roUnit1"></i></div>
+          <div class="ro"><b id="roName2">자기장 방향</b><span id="roVal2">-</span><i id="roUnit2"></i></div>
+          <div class="ro"><b id="roName3">세기</b><span id="roVal3">-</span><i id="roUnit3"></i></div>
+          <div class="ro"><b id="roName4">세기</b><span id="roVal4">-</span><i id="roUnit4"></i></div>
+        </div>
+
+        <div class="formula">
+          <div id="fLaw"></div>
+          <div id="fWhy"></div>
+        </div>
+      </div>
+
+      <div class="panel" data-for="force">
+        <h3>📈 힘과 전류</h3>
+        <p class="sub">전류가 2배가 되면 힘도 2배 — <b>정비례</b></p>
+        <canvas class="graph" id="graph"></canvas>
+      </div>
+
+      <div class="panel">
+        <h3>🎛️ 조작</h3>
+
+        <div class="ctl" data-for="field mission" data-need="mode">
+          <label>무엇에 전류를 흘릴까? <span></span></label>
+          <div class="chips" id="chipMode">
+            <button type="button" class="chip on" data-val="wire">➖ 직선 도선</button>
+            <button type="button" class="chip" data-val="coil">🌀 코일</button>
+          </div>
+        </div>
+
+        <div class="ctl" data-for="field mission" data-need="cur">
+          <label>전류의 세기 <span id="valCur">0 A</span></label>
+          <input type="range" id="rngCur" min="0" max="5" step="0.5" value="0">
+        </div>
+
+        <div class="ctl" data-for="field force motor mission" data-need="isign">
+          <label id="lblIsign">전류 방향 <span></span></label>
+          <div class="chips" id="chipIsign">
+            <button type="button" class="chip on" data-val="1" id="chipIout">⊙ 나오는 방향</button>
+            <button type="button" class="chip" data-val="-1" id="chipIin">⊗ 들어가는 방향</button>
+          </div>
+        </div>
+
+        <div class="ctl" data-for="force motor mission" data-need="bsign">
+          <label>자석의 극 <span></span></label>
+          <div class="chips" id="chipB">
+            <button type="button" class="chip on" data-val="1">N극 왼쪽 → S극 오른쪽</button>
+            <button type="button" class="chip" data-val="-1">S극 왼쪽 ← N극 오른쪽</button>
+          </div>
+        </div>
+
+        <div class="ctl" data-for="force motor mission" data-need="sw">
+          <label>스위치 <span></span></label>
+          <div class="chips" id="chipSw">
+            <button type="button" class="chip on" data-val="0">⏻ 꺼짐</button>
+            <button type="button" class="chip" data-val="1">🔌 켜짐</button>
+          </div>
+        </div>
+
+        <div class="ctl" data-for="force motor mission" data-need="R">
+          <label>니크롬선 접점 (저항) <span id="valR">3 Ω</span></label>
+          <input type="range" id="rngR" min="1" max="6" step="0.5" value="3">
+        </div>
+
+        <div class="ctl" data-for="force motor mission" data-need="n">
+          <label>자석의 개수 (자기장의 세기) <span id="valN">1 개</span></label>
+          <input type="range" id="rngN" min="1" max="3" step="1" value="1">
+        </div>
+
+        <div class="hint" style="font-size:16px;margin-top:16px" id="ctlHint"></div>
+      </div>
+    </div>
+
+  </div><!-- /stage-wrap -->
+
+  <div class="card">
+    <h2>📚 이 실험은 무엇과 이어질까</h2>
+    <div class="tablescroll">
+      <table class="grid">
+        <tr><th>단원</th><th>학습 목표</th><th>여기서 하는 일</th></tr>
+        <tr><td>Ⅱ. 전기와 자기<br>2. 자기</td>
+            <td class="left">자기장 안에 놓인 전류가 흐르는 코일이 받는 힘의 특성을 추리하고, 전동기 등 일상생활에서 활용한 예를 찾을 수 있다</td>
+            <td class="left">🧭 전류가 만드는 자기장 · ⚡ 도선이 받는 힘 · 🌀 전동기</td></tr>
+        <tr><td>Ⅵ. 에너지 전환과 보존 <em>(3학년)</em></td>
+            <td class="left">자석의 운동으로 전류가 만들어지는 <b>전자기 유도</b> <em>(거꾸로 가는 현상)</em></td>
+            <td class="left">전자기 유도 실험실 <em>(다른 앱)</em></td></tr>
+      </table>
+    </div>
+    <div class="hint">
+      전동기는 <b>전기 에너지 → 운동 에너지</b>, 발전기(전자기 유도)는 <b>운동 에너지 → 전기 에너지</b>입니다.
+      두 앱을 이어서 보면 서로 <b>반대 방향의 변환</b>이라는 것이 보여요.
+    </div>
+  </div>
+
+</div>
+
+<script src="js/pdf.js"></script>
+<script src="js/emforce.js"></script>
+<script src="js/lab.js"></script>
+</body>
+</html>

@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>전자기력 학습지</title>
+<link rel="stylesheet" href="css/app.css">
+<style>
+  .fig { background:#0f172a; border-radius:12px; padding:10px; margin:14px 0; }
+  .fig svg { width:100%; height:auto; display:block; }
+  .qbox { border-top:2px solid var(--line); padding-top:18px; margin-top:18px; }
+  .qbox:first-of-type { border-top:0; padding-top:0; margin-top:0; }
+  .qno { display:inline-block; background:var(--brand); color:#fff; border-radius:8px;
+         padding:2px 12px; font-size:17px; margin-right:8px; }
+  .qtitle { font-size:21px; font-weight:bold; margin:0 0 12px; }
+  .ox-row { display:flex; gap:12px; }
+  .ox-row .opt { flex:1; text-align:center; font-size:26px; font-weight:bold; }
+  .numwrap { display:flex; align-items:center; gap:12px; }
+  .numwrap input { max-width:220px; }
+  .numwrap .unit { font-size:22px; font-weight:bold; }
+  .ans { margin-top:12px; padding:12px 16px; border-radius:10px; font-size:18px; }
+  .ans.ok { background:var(--ok-bg); border-left:6px solid var(--ok); }
+  .ans.no { background:var(--no-bg); border-left:6px solid var(--no); }
+  .savebar {
+    position:sticky; bottom:0; background:#fff; border-top:2px solid var(--line);
+    padding:14px 18px; display:flex; gap:12px; align-items:center; flex-wrap:wrap; z-index:50;
+    margin:0 -18px; box-shadow:0 -4px 14px rgba(0,0,0,.06);
+  }
+  .savebar .grow { flex:1 1 auto; font-size:18px; color:var(--sub); }
+  .scoreband { background:var(--band); border-radius:10px; padding:12px 16px; font-size:21px; font-weight:bold; margin:0 0 16px; }
+  .locked input, .locked textarea, .locked select { background:#f3f4f6; color:var(--sub); }
+
+  @media print {
+    .fig text[fill="#e2e8f0"] { fill:#111 !important; }
+    .fig line[stroke="#e2e8f0"] { stroke:#444 !important; }
+    .fig line[stroke="#38bdf8"], .fig polyline[stroke="#38bdf8"] { stroke:#0369a1 !important; }
+    .fig line[stroke="#fbbf24"], .fig polyline[stroke="#fbbf24"] { stroke:#b45309 !important; }
+    .fig circle[fill="#38bdf8"] { fill:#0369a1 !important; }
+    .fig text[fill="#38bdf8"] { fill:#0369a1 !important; }
+    .fig text[fill="#fbbf24"] { fill:#b45309 !important; }
+    .fig circle[stroke="#fbbf24"] { stroke:#b45309 !important; }
+    .fig circle[fill="#fbbf24"], .fig polygon[fill="#fbbf24"] { fill:#b45309 !important; }
+    .fig line[stroke="#60a5fa"] { stroke:#1d4ed8 !important; }
+    .fig polygon[fill="#60a5fa"] { fill:#1d4ed8 !important; }
+    .fig line[stroke="#94a3b8"], .fig line[stroke="#64748b"], .fig circle[stroke="#94a3b8"] { stroke:#555 !important; }
+    /* 문항이 20개라 공용값(9pt)에서 조금만 키운다 */
+    html, body { font-size: 9.5pt; line-height: 1.38; }
+    .qtitle { font-size: 9.5pt; }
+    .opt { font-size: 8.5pt; }
+    .ox-row .opt { font-size: 9.5pt; }
+    .numwrap input, .numwrap .unit { font-size: 9.5pt; }
+    textarea {
+      font-size: 9.5pt; line-height: 6.5mm;
+      min-height: 12mm; height: 12.5mm;
+      background: repeating-linear-gradient(#fff 0, #fff 6.5mm, #bbb 6.5mm, #bbb 6.7mm) !important;
+    }
+    table.grid th, table.grid td { font-size: 8pt; }
+    .qbox { padding-top: 1.2mm; margin-top: 1.2mm; border-top: .4pt solid #bbb; break-inside: avoid; }
+    .qno { font-size: 8.5pt; padding: 0 2mm; margin-right: 1.5mm; }
+    .qtitle { margin: 0 0 1mm; }
+    .fig { margin: 2mm 0; padding: 1mm; }
+    .fig svg { height: 25mm; }
+  }
+</style>
+</head>
+<body>
+
+<div class="top">
+  <h1>📝 전자기력 학습지</h1>
+  <span class="badge">중학교 2학년 과학 · 전기와 자기</span>
+  <span class="spacer"></span>
+  <a class="home" href="index.html" target="ef-lab" data-win>🧲 실험실 열기 ↗</a>
+</div>
+
+<div class="wrap">
+
+  <!-- 🔑 선생님용 정답지 — worksheet.html?key 로 열린다. 평소에는 숨어 있다. -->
+  <div id="keyRoot">
+    <div class="print-only print-head">
+      <h1>전자기력 학습지 · 정답지</h1>
+      <p class="sub">중학교 2학년 과학 · 전기와 자기 — 전자기력 · 선생님용</p>
+    </div>
+    <div class="card no-print keybar">
+      <h2>🔑 정답지</h2>
+      <label><input type="checkbox" id="kQ"> 문제도 함께</label>
+      <label><input type="checkbox" id="kWhy"> 해설도 함께</label>
+      <span class="grow"></span>
+      <a class="btn" href="worksheet.html">← 학생용 학습지</a>
+      <button type="button" class="btn primary" id="kPrint">🖨 인쇄하기</button>
+    </div>
+    <div class="card" id="keySheet"></div>
+  </div>
+
+  <div class="print-only print-head">
+    <h1>전자기력 학습지</h1>
+    <p class="sub">중학교 2학년 과학 · 전기와 자기 — 전자기력</p>
+    <div class="who">2학년 (　　　)반 　(　　　)번 　이름 (　　　　　　　　)</div>
+  </div>
+
+  <div class="card no-print">
+    <h2>이렇게 하세요</h2>
+    <div class="hint">
+      <b>1</b> 오른쪽 위 <b>🧲 실험실 열기</b>를 눌러 실험실을 <b>새 창</b>으로 띄우고 나란히 놓습니다.<br>
+      <b>2</b> 문제를 <b>먼저 예측해서</b> 쓴 다음, 실험실에서 확인합니다.<br>
+      <b>3</b> 다 쓰면 맨 아래 <b>PDF로 저장하기</b>를 누릅니다.
+    </div>
+    <div class="warnbox"><b>제출은 한 번뿐입니다.</b> PDF를 저장하면 답을 고칠 수 없습니다.</div>
+  </div>
+
+  <div class="scoreband hidden" id="scoreBand"></div>
+  <div class="card" id="sheet"></div>
+
+  <div class="savebar">
+    <span class="grow" id="saveMsg">다 썼으면 PDF로 저장해 제출하세요.</span>
+    <button type="button" class="btn" id="btnAnswers">정답 확인 (PDF 저장 후 열림) 🔒</button>
+    <button type="button" class="btn" id="btnClear">쓴 내용 지우기</button>
+    <button type="button" class="btn primary big" id="btnPdf">PDF로 저장하기</button>
+  </div>
+
+  <div class="card no-print" id="aboutCard">
+    <h2>ℹ️ 개인정보 안내</h2>
+    <p class="lead">
+      학년·반·학번·이름은 <b>PDF를 만드는 순간에만</b> 물어보고 <b>PDF 파일 안에만</b> 들어갑니다.
+    </p>
+  </div>
+
+</div>
+
+<script src="js/pdf.js"></script>
+<script src="js/emforce.js"></script>
+<script>
+/* =========================================================
+   worksheet.html — 학습지 문항 · 자동 채점 · PDF 제출
+   ---------------------------------------------------------
+   문항은 2학년 「Ⅱ. 전기와 자기」 2. 자기 — (1) 전류가 만드는 자기장 · (2) 전기와 자기가 만드는 힘 · 전동기 —
+   의 흐름을 따라가고, 성취기준 [9과14-04] 로 모은다.
+   ⚠ 이 단원의 핵심은 **전류·자기장의 방향이 힘의 방향을 정하고, 크기는 전류×자기장의 세기에 비례** 한다는 것이다.
+   ⚠ 정답의 방향과 값은 모두 EmForce 엔진에서 계산하고, 그림도 같은 규칙으로 그린다. 그림과 정답이 어긋날 수 없다.
+   ========================================================= */
+(function () {
+  "use strict";
+  var K = window.PdfKit;
+  var E = window.EmForce;
+
+  /* 정답은 손으로 적지 않는다 — 방향과 값은 EmForce 엔진에서 계산한다. */
+  function mk(list, correct) {         // 보기 목록 + 정답 글자 → {opts, ans}
+    return { opts: list.map(function (t) { return t === correct ? "<b>" + t + "</b>" : t; }), ans: list.indexOf(correct) };
+  }
+  function circ(sign) { return E.wireCirculation(sign) === "ccw" ? "반시계 방향" : "시계 방향"; }
+  function poleName(sign) { return E.coilPole(sign) === "right" ? "오른쪽" : "왼쪽"; }
+  function upDown(Is, Bs) { return E.forceName(E.forceDir(Is, Bs)); }
+  function spin(Is, Bs) { return E.spinName(E.motorSpin(Is, Bs)) + " 방향"; }
+
+  var W1 = mk(["반시계 방향", "시계 방향"], circ(+1));
+  var W2 = mk(["반시계 방향", "시계 방향"], circ(-1));
+  var CO = mk(["왼쪽", "가운데", "오른쪽"], poleName(+1));
+  var FA = mk(["위쪽", "아래쪽"], upDown(+1, +1));        // (A) : ⊙ · N극 왼쪽
+  var FB = mk(["위쪽", "아래쪽"], upDown(+1, -1));        // (B) : ⊙ · N극 오른쪽
+  var M1 = mk(["반시계 방향", "시계 방향"], spin(+1, +1));
+  var M2 = mk(["반시계 방향", "시계 방향"], spin(-1, +1));
+  var F32 = E.forceMag(3, 2);
+
+  var SHEET = [
+    {
+      step: "1단계 · 전류가 만드는 자기장",
+      lead: "실험실의 🧭 <b>전류가 만드는 자기장</b> 장면을 열어 두고 답하세요(미션 1~3). " +
+            "나침반 바늘의 <b>붉은 쪽이 N극</b>입니다.",
+      items: [
+        { type: "choice", q: "<b>자기장의 방향</b>은 어떻게 정할까요?",
+          opts: ["<b>나침반 바늘의 N극이 가리키는 방향</b>", "나침반 바늘의 S극이 가리키는 방향", "자석에서 가장 먼 쪽"], ans: 0,
+          why: "<b>나침반 바늘의 N극이 가리키는 방향</b>입니다. 자석 밖에서는 N극에서 나와 S극으로 들어가요." },
+        { type: "ox", q: "자기장은 <b>자석 주위에만</b> 생긴다.", ans: false,
+          why: "아닙니다. <b>전류가 흐르는 도선 주위에도</b> 자기장이 생겨요. (실험실 미션 1)" },
+        { type: "choice", fig: "wire", q: "그림은 도선을 <b>위에서 본 모습</b>입니다. (가)처럼 전류가 <b>화면에서 나오는 방향(⊙)</b>일 때, " +
+               "도선을 둘러싸는 <b>자기장의 방향</b>은?",
+          opts: W1.opts, ans: W1.ans,
+          why: "<b>" + circ(+1) + "</b>입니다. 오른손 엄지손가락을 전류 방향으로 향하면 감아쥔 손가락이 자기장의 방향이에요." },
+        { type: "choice", q: "(나)처럼 전류가 <b>화면으로 들어가는 방향(⊗)</b>이면 자기장의 방향은?",
+          opts: W2.opts, ans: W2.ans,
+          why: "<b>" + circ(-1) + "</b>입니다. 전류의 방향이 반대가 되면 자기장의 방향도 반대가 돼요." },
+        { type: "choice", fig: "coil", q: "그림처럼 코일의 <b>앞쪽 도선에서 전류가 아래쪽</b>으로 흐릅니다. " +
+               "오른손을 전류 방향으로 감아쥘 때 <b>N극</b>은 어느 쪽에 생길까요?",
+          opts: CO.opts, ans: CO.ans,
+          why: "<b>" + poleName(+1) + "</b>입니다. 감아쥔 오른손의 엄지손가락이 가리키는 쪽이 N극이에요. (실험실 미션 3)" },
+        { type: "choice", q: "코일 속에 <b>철심</b>을 넣어 만든, 전류가 흐를 때만 자석이 되는 것은?",
+          opts: ["나침반", "영구 자석", "<b>전자석</b>"], ans: 2,
+          why: "<b>전자석</b>입니다. 전류를 바꾸면 자기장의 세기와 방향을 조절할 수 있어 자기 부상 열차, MRI 등에 이용돼요." }
+      ]
+    },
+    {
+      step: "2단계 · 자기장 속의 도선이 받는 힘",
+      lead: "실험실의 ⚡ <b>도선이 받는 힘</b> 장면을 사용하세요(미션 4~7). " +
+            "자석 사이에 놓은 알루미늄박(도선)에 전류를 흘립니다.",
+      items: [
+        { type: "tbl", q: "실험실에서 조건을 바꿔 가며 <b>알루미늄박이 움직이는 방향(힘의 방향)</b>을 표에 쓰세요. " +
+               "<em>(기본 구성 : ⊙ 나오는 전류 · N극 왼쪽)</em>",
+          head: ["구성", "이동 방향"],
+          rows: ["기본 구성", "자석의 극 바꿈", "전류 방향 바꿈", "자석의 극·전류 방향 모두 바꿈"],
+          keyAns: [[upDown(+1, +1)], [upDown(+1, -1)], [upDown(-1, +1)], [upDown(-1, -1)]] },
+        { type: "choice", q: "도선이 받는 힘의 <b>방향</b>은 무엇에 영향을 받을까요?",
+          opts: ["도선의 길이", "도선의 색깔", "<b>전류의 방향과 자기장의 방향</b>"], ans: 2,
+          why: "<b>전류의 방향</b>과 <b>자기장의 방향</b>입니다. 이 둘 중 하나가 바뀌면 힘의 방향도 바뀌어요." },
+        { type: "choice", q: "<b>전류의 방향과 자석의 극을 둘 다</b> 바꾸면 힘의 방향은?",
+          opts: ["<b>처음과 같다</b>", "처음과 반대가 된다", "힘이 사라진다"], ans: 0,
+          why: "<b>처음과 같습니다.</b> 하나만 바꾸면 뒤집히는데, 둘 다 바꾸면 뒤집기가 두 번이라 제자리로 돌아와요." },
+        { type: "num", q: "힘의 크기는 <b>전류 × 자기장의 세기</b>에 비례합니다. 자석 1개 · 1 A 일 때 힘이 1칸이라면, " +
+               "<b>자석 2개 · 3 A</b> 일 때 힘은 몇 칸일까요?",
+          unit: "칸", ans: F32, tol: 0.05,
+          why: "<b>" + F32 + " 칸</b> 입니다. 힘 = 전류 × 자석 수 = 3 × 2." },
+        { type: "choice", q: "도선이 받는 힘을 <b>더 크게</b> 하려면 니크롬선의 저항을 어떻게 해야 할까요? <em>(전원 전압은 그대로)</em>",
+          opts: ["크게 한다", "<b>작게 한다</b>", "관계없다"], ans: 1,
+          why: "<b>작게 합니다.</b> 저항이 작을수록 전류가 커지고, 전류가 클수록 힘이 커지니까요." },
+        { type: "choice", fig: "force", q: "그림 <b>(A)</b> 에서 알루미늄박이 받는 힘의 방향은? <em>(자기장은 N극에서 S극으로)</em>",
+          opts: FA.opts, ans: FA.ans,
+          why: "<b>" + upDown(+1, +1) + "</b>입니다. 기본 구성(⊙ · N극 왼쪽)과 같아요." },
+        { type: "choice", q: "그림 <b>(B)</b> 에서 알루미늄박이 받는 힘의 방향은?",
+          opts: FB.opts, ans: FB.ans,
+          why: "<b>" + upDown(+1, -1) + "</b>입니다. (A)와 전류는 같은데 자석의 극이 바뀌었으니 힘의 방향이 반대예요." }
+      ]
+    },
+    {
+      step: "3단계 · 전동기",
+      lead: "실험실의 🌀 <b>전동기</b> 장면에서 스위치를 켜고 <b>▶ 돌려 보기</b>를 눌러 보세요(미션 8).",
+      items: [
+        { type: "choice", q: "<b>전동기</b>는 무엇을 이용해 코일을 회전시키는 장치일까요?",
+          opts: ["<b>자기장 속에서 전류가 흐르는 코일이 받는 힘</b>", "코일에서 만들어진 열", "코일의 무게"], ans: 0,
+          why: "<b>자석에 의한 자기장 속에서 전류가 흐르는 코일이 받는 힘</b>을 이용합니다. 전동기는 자석과 코일로 이루어져 있어요." },
+        { type: "choice", q: "다음 중 <b>전동기를 이용하는</b> 것은?",
+          opts: ["전기 스탠드의 전구", "<b>선풍기</b>", "손난로"], ans: 1,
+          why: "<b>선풍기</b>입니다. 세탁기 · 진공청소기 · 전기 자동차 · 엘리베이터 · 드론 · 스피커 등도 전동기의 자기력을 이용해요." },
+        { type: "choice", fig: "motor", q: "그림은 코일의 두 변 <b>AB · CD</b> 를 회전축 방향에서 본 것입니다. " +
+               "두 변에 흐르는 <b>전류의 방향</b>은 서로 어떠한가요?",
+          opts: ["같다", "수직이다", "<b>반대이다</b>"], ans: 2,
+          why: "<b>반대입니다.</b> (AB 는 ⊙, CD 는 ⊗) 그래서 두 변이 받는 힘의 방향도 반대가 되어 코일이 회전해요." },
+        { type: "choice", q: "이 그림에서 코일은 어느 방향으로 회전할까요? <em>(AB 가 받는 힘은 " + upDown(+1, +1) + ")</em>",
+          opts: M1.opts, ans: M1.ans,
+          why: "<b>" + spin(+1, +1) + "</b>입니다. 오른쪽의 AB 가 " + upDown(+1, +1) + "으로 힘을 받고 왼쪽의 CD 는 반대로 받으니까요." },
+        { type: "choice", q: "이 그림에서 <b>전류의 방향만</b> 반대로 하면 코일의 회전 방향은?",
+          opts: M2.opts, ans: M2.ans,
+          why: "<b>" + spin(-1, +1) + "</b>입니다. 힘의 방향이 뒤집히니 회전 방향도 반대가 돼요." },
+        { type: "choice", q: "전동기에서 <b>정류자</b>의 역할은 무엇일까요?",
+          opts: ["코일을 식혀 준다", "자석의 세기를 바꾼다", "<b>반 바퀴 회전한 뒤 전류를 끊어 코일이 한 방향으로 계속 돌게 한다</b>"], ans: 2,
+          why: "<b>반 바퀴 회전한 뒤 전류가 흐르지 않게</b> 해서 코일이 일정한 방향으로 힘을 받아 <b>한 방향으로 계속</b> 돌게 합니다." }
+      ]
+    },
+    {
+      step: "4단계 · 정리",
+      lead: "",
+      items: [
+        { type: "text", q: "이 단원에서 배운 것을 <b>한 문장</b>으로 정리해 보세요.<br>" +
+               "<em>(‘전류’, ‘자기장’, ‘힘’을 넣어서 써 보면 좋습니다.)</em>",
+          why: "예시 — <b>“자기장 속에서 전류가 흐르는 도선(코일)은 힘을 받고, 힘의 방향은 전류와 자기장의 방향이, 크기는 전류와 자기장의 세기가 정하며, 이를 이용한 것이 전동기이다.”</b>" }
+      ]
+    }
+  ];
+
+  var ctrls = [], submitted = false, lastInfo = null, lastPages = null;
+
+  function el(tag, cls, html) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (html != null) e.innerHTML = html;
+    return e;
+  }
+
+  /* ---------------------------------------------------------
+     그림 — 방향과 값은 모두 EmForce 엔진에서 나온다.
+     --------------------------------------------------------- */
+  function svg(w, h, inner) {
+    return '<div class="fig"><svg viewBox="0 0 ' + w + ' ' + h + '" xmlns="http://www.w3.org/2000/svg">' +
+           inner + '</svg></div>';
+  }
+  function txt(x, y, s, anchor, extra) {
+    return '<text x="' + x + '" y="' + y + '" fill="' + ((extra && extra.fill) || "#e2e8f0") +
+           '" font-size="' + ((extra && extra.size) || 14) + '" text-anchor="' + (anchor || "middle") +
+           '"' + ((extra && extra.bold) ? ' font-weight="bold"' : "") + '>' + s + '</text>';
+  }
+  function ln(x1, y1, x2, y2, stroke, w) {
+    return '<line x1="' + x1 + '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2 + '" stroke="' + stroke +
+           '" stroke-width="' + (w || 1) + '"/>';
+  }
+  /* 전류 기호 ⊙(+1) ⊗(−1) */
+  function sym(x, y, r, sign) {
+    var s = '<circle cx="' + x + '" cy="' + y + '" r="' + r + '" fill="none" stroke="#fbbf24" stroke-width="2.5"/>';
+    if (sign > 0) s += '<circle cx="' + x + '" cy="' + y + '" r="' + (r * 0.32) + '" fill="#fbbf24"/>';
+    else {
+      var d = r * 0.62;
+      s += ln(x - d, y - d, x + d, y + d, "#fbbf24", 2.5) + ln(x + d, y - d, x - d, y + d, "#fbbf24", 2.5);
+    }
+    return s;
+  }
+  function pole(x, y, w, h, letter) {
+    return '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="5" fill="' +
+           (letter === "N" ? "#ef4444" : "#3b82f6") + '" stroke="#e2e8f0" stroke-width="1.2"/>' +
+           txt(x + w / 2, y + h / 2 + 8, letter, "middle", { size: 24, bold: true, fill: "#ffffff" });
+  }
+  function arrowSvg(x1, y1, x2, y2, col) {
+    var a = Math.atan2(y2 - y1, x2 - x1);
+    return ln(x1, y1, x2 - Math.cos(a) * 6, y2 - Math.sin(a) * 6, col, 3) +
+           '<polygon points="' + x2 + ',' + y2 + ' ' +
+           (x2 - Math.cos(a - 0.45) * 11) + ',' + (y2 - Math.sin(a - 0.45) * 11) + ' ' +
+           (x2 - Math.cos(a + 0.45) * 11) + ',' + (y2 - Math.sin(a + 0.45) * 11) + '" fill="' + col + '"/>';
+  }
+
+  /* 직선 도선 두 장 : (가) ⊙  (나) ⊗ — 고리는 그리되 방향은 그리지 않는다(학생이 추리) */
+  function wireFigure() {
+    var s = "";
+    [[170, +1, "(가)"], [470, -1, "(나)"]].forEach(function (p) {
+      s += '<circle cx="' + p[0] + '" cy="82" r="58" fill="none" stroke="#94a3b8" stroke-width="1.6" stroke-dasharray="5 5"/>';
+      s += sym(p[0], 82, 15, p[1]);
+      s += txt(p[0], 170, p[2] + (p[1] > 0 ? "  전류 ⊙ (나오는 방향)" : "  전류 ⊗ (들어가는 방향)"), "middle", { size: 14 });
+    });
+    return svg(640, 180, s);
+  }
+
+  /* 코일 : 앞쪽 도선에서 전류가 아래로 (Isign +1) — 양 끝의 극은 묻는다 */
+  function coilFigure() {
+    var s = "", x0 = 200, x1 = 440, cy = 72, ry = 50, T = E.TURNS;
+    for (var t = 0; t < T; t++) {
+      var tx = x0 + (x1 - x0) * (t + 0.5) / T;
+      s += ln(tx, cy - ry, tx + 9, cy - ry, "#94a3b8", 3) + ln(tx, cy + ry, tx + 9, cy + ry, "#94a3b8", 3);
+      s += ln(tx + 9, cy - ry, tx + 9, cy + ry, "#64748b", 3);
+      s += ln(tx, cy - ry, tx, cy + ry, "#fbbf24", 4);
+      s += '<polygon points="' + tx + ',' + (cy + 10) + ' ' + (tx - 6) + ',' + (cy - 3) + ' ' + (tx + 6) + ',' + (cy - 3) + '" fill="#fbbf24"/>';
+    }
+    s += txt(x0 - 40, cy + 8, "?", "middle", { size: 26, bold: true });
+    s += txt(x1 + 46, cy + 8, "?", "middle", { size: 26, bold: true });
+    s += txt(320, 150, "앞쪽 도선의 전류 : 아래로 (⬇)", "middle", { size: 14 });
+    return svg(640, 162, s);
+  }
+
+  /* 힘 두 장 : (A) ⊙ · N극 왼쪽   (B) ⊙ · N극 오른쪽 */
+  var FORCE_CASES = [["A", +1, +1], ["B", -1, +1]];      // [이름, Bsign, Isign] — 위의 FA · FB 와 같은 조건
+  function forceFigure() {
+    var s = "";
+    FORCE_CASES.forEach(function (c, i) {
+      var ox = 100 + i * 250, cy = 70;
+      var left = c[1] > 0 ? "N" : "S", right = c[1] > 0 ? "S" : "N";
+      s += pole(ox, cy - 44, 44, 88, left) + pole(ox + 116, cy - 44, 44, 88, right);
+      s += arrowSvg(ox + 52, cy - 26, ox + 100, cy - 26, "#60a5fa") + arrowSvg(ox + 52, cy + 26, ox + 100, cy + 26, "#60a5fa");
+      s += sym(ox + 80, cy, 14, c[2]);
+      s += txt(ox + 80, 142, "(" + c[0] + ")", "middle", { size: 16, bold: true });
+    });
+    return svg(640, 152, s);
+  }
+
+  /* 전동기 : θ = 0 — AB 가 오른쪽(전류 ⊙), CD 가 왼쪽(⊗). N극이 왼쪽 */
+  function motorFigure() {
+    var cx = 320, cy = 80, R = 58, s = "";
+    s += pole(70, cy - 58, 50, 116, "N") + pole(520, cy - 58, 50, 116, "S");
+    [-26, 0, 26].forEach(function (dy) { s += arrowSvg(132, cy + dy, 500, cy + dy, "#60a5fa"); });
+    s += ln(cx - R, cy, cx + R, cy, "#94a3b8", 6);
+    s += '<circle cx="' + cx + '" cy="' + cy + '" r="5" fill="#94a3b8"/>';
+    s += sym(cx + R, cy, 15, +1) + sym(cx - R, cy, 15, -1);
+    s += txt(cx + R + 38, cy + 5, "AB", "middle", { size: 15, bold: true }) + txt(cx - R - 38, cy + 5, "CD", "middle", { size: 15, bold: true });
+    s += txt(cx, 162, "회전축 방향에서 본 코일 (전류가 흐르는 순간)", "middle", { size: 13 });
+    return svg(640, 172, s);
+  }
+
+  var FIGS = { wire: wireFigure, coil: coilFigure, force: forceFigure, motor: motorFigure };
+
+  function build() {
+    var host = document.getElementById("sheet");
+    host.innerHTML = "";
+    var qno = 0;
+    SHEET.forEach(function (stepDef, si) {
+      host.appendChild(el("h2", null, '<span class="step">' + (si + 1) + '</span>' + stepDef.step));
+      if (stepDef.lead) host.appendChild(el("p", "lead", stepDef.lead));
+      if (stepDef.figure) host.appendChild(el("div", null, FIGS[stepDef.figure]()).firstChild);
+      stepDef.items.forEach(function (it) {
+        qno++;
+        var box = el("div", "qbox");
+        box.appendChild(el("p", "qtitle", '<span class="qno">' + qno + '</span>' + it.q));
+        if (it.fig) box.appendChild(el("div", null, FIGS[it.fig]()).firstChild);
+        var c = renderItem(it, box);
+        c.def = it; c.no = qno; c.step = si;
+        c.ansBox = el("div", "ans hidden");
+        box.appendChild(c.ansBox);
+        ctrls.push(c);
+        host.appendChild(box);
+      });
+    });
+    restore();
+  }
+
+  function renderItem(it, box) {
+    if (it.type === "choice" || it.type === "ox") {
+      var opts = it.type === "ox" ? ["O (맞다)", "X (아니다)"] : it.opts;
+      var wrap = el("div", it.type === "ox" ? "opts ox-row" : "opts");
+      wrap.style.display = "flex";
+      wrap.style.flexDirection = it.type === "ox" ? "row" : "column";
+      wrap.style.gap = "8px";
+      var pick = -1, btns = [];
+      opts.forEach(function (t, i) {
+        var b = el("button", "opt", (it.type === "ox" ? "" : "④①②③".charAt(i + 1) + " ") + t);
+        b.type = "button";
+        b.addEventListener("click", function () {
+          if (submitted) { K.toast("제출한 뒤에는 답을 고칠 수 없습니다.", "warn"); return; }
+          pick = i;
+          btns.forEach(function (x, j) { x.classList.toggle("on", j === i); });
+          save();
+        });
+        btns.push(b); wrap.appendChild(b);
+      });
+      box.appendChild(wrap);
+      var right = it.type === "ox" ? (it.ans ? 0 : 1) : it.ans;
+      return {
+        get: function () { return pick; },
+        set: function (v) { pick = v; btns.forEach(function (x, j) { x.classList.toggle("on", j === v); }); },
+        forPdf: function () { return pick < 0 ? "" : stripTags(opts[pick]); },
+        grade: function () { return pick === right; },
+        rightText: function () { return stripTags(opts[right]); },
+        lock: function () { btns.forEach(function (b) { b.disabled = true; }); },
+        markAnswer: function () {
+          btns.forEach(function (b, j) {
+            if (j === right) b.classList.add("right");
+            else if (j === pick) b.classList.add("wrong");
+          });
+        }
+      };
+    }
+
+    if (it.type === "num") {
+      var w = el("div", "numwrap");
+      var inp = el("input"); inp.type = "text"; inp.inputMode = "decimal";
+      inp.placeholder = "숫자만 쓰세요";
+      inp.addEventListener("input", save);
+      w.appendChild(inp); w.appendChild(el("span", "unit", it.unit || ""));
+      box.appendChild(w);
+      return {
+        get: function () { return inp.value; },
+        set: function (v) { inp.value = v || ""; },
+        forPdf: function () { return inp.value ? inp.value + " " + (it.unit || "") : ""; },
+        grade: function () {
+          var v = parseFloat(String(inp.value).replace(/[^0-9.\-]/g, ""));
+          return isFinite(v) && Math.abs(v - it.ans) <= (it.tol || 0.01);
+        },
+        rightText: function () { return it.ans + " " + (it.unit || ""); },
+        lock: function () { inp.disabled = true; }
+      };
+    }
+
+    if (it.type === "text") {
+      var ta = el("textarea");
+      ta.placeholder = "여기에 자기 말로 써 보세요.";
+      ta.addEventListener("input", save);
+      box.appendChild(ta);
+      return {
+        get: function () { return ta.value; },
+        set: function (v) { ta.value = v || ""; },
+        forPdf: function () { return ta.value; },
+        lock: function () { ta.disabled = true; }
+      };
+    }
+
+    if (it.type === "tbl") {
+      var scroll = el("div", "tablescroll");
+      var tb = el("table", "grid");
+      var thead = el("thead"), tr = el("tr");
+      it.head.forEach(function (t) { tr.appendChild(el("th", null, t)); });
+      thead.appendChild(tr); tb.appendChild(thead);
+      var body = el("tbody"), inputs = [];
+      it.rows.forEach(function (rowName) {
+        var r = el("tr");
+        r.appendChild(el("td", "left", "<b>" + rowName + "</b>"));
+        var line = [];
+        for (var ci = 1; ci < it.head.length; ci++) {
+          var td = el("td");
+          var i2 = el("input"); i2.type = "text";
+          i2.addEventListener("input", save);
+          td.appendChild(i2); r.appendChild(td); line.push(i2);
+        }
+        inputs.push(line); body.appendChild(r);
+      });
+      tb.appendChild(body); scroll.appendChild(tb); box.appendChild(scroll);
+      return {
+        get: function () { return inputs.map(function (l) { return l.map(function (i) { return i.value; }); }); },
+        set: function (v) {
+          if (!v) return;
+          v.forEach(function (l, ri) { (l || []).forEach(function (val, ci) { if (inputs[ri] && inputs[ri][ci]) inputs[ri][ci].value = val; }); });
+        },
+        forPdfTable: function () {
+          return [it.head].concat(inputs.map(function (l, ri) {
+            return [it.rows[ri]].concat(l.map(function (i) { return i.value || "-"; }));
+          }));
+        },
+        forPdf: function () { return ""; },
+        lock: function () { inputs.forEach(function (l) { l.forEach(function (i) { i.disabled = true; }); }); }
+      };
+    }
+
+    return { get: function () { return null; }, set: function () {}, forPdf: function () { return ""; }, lock: function () {} };
+  }
+
+  function save() {
+    if (submitted) return;
+    try { sessionStorage.setItem("ef_worksheet", JSON.stringify(ctrls.map(function (c) { return c.get(); }))); } catch (e) {}
+  }
+  function restore() {
+    try {
+      var v = JSON.parse(sessionStorage.getItem("ef_worksheet") || "null");
+      if (v && v.length === ctrls.length) ctrls.forEach(function (c, i) { c.set(v[i]); });
+    } catch (e) {}
+  }
+
+  function score() {
+    var got = 0, all = 0;
+    ctrls.forEach(function (c) { if (!c.grade) return; all++; if (c.grade()) got++; });
+    return { got: got, all: all };
+  }
+
+  function makePdf(info) {
+    var sc = score();
+    var doc = K.createDoc({
+      title: "전자기력 학습지",
+      subtitle: "중학교 2학년 과학 · 전기와 자기 — 전자기력",
+      meta: { grade: info.grade, cls: info.cls, num: info.num, name: info.name,
+              when: info.when, right: "자동 채점 " + sc.got + " / " + sc.all },
+      footer: "전자기력 실험실"
+    });
+    var qi = 0;
+    SHEET.forEach(function (stepDef) {
+      doc.h1(stepDef.step);
+      if (stepDef.lead) doc.p(stripTags(stepDef.lead), { size: 20, lh: 29 });
+      stepDef.items.forEach(function () {
+        var c = ctrls[qi++], it = c.def;
+        doc.h2(c.no + ". " + stripTags(it.q));
+        if (c.forPdfTable) {
+          var rows = c.forPdfTable();
+          doc.table(rows, rows[0].map(function (_, i) { return i === 0 ? 1.6 : 1; }));
+        } else {
+          doc.box(null, c.forPdf(), { minLines: it.type === "text" ? 3 : 1 });
+        }
+        if (c.grade) {
+          var ok = c.grade();
+          doc.mark(ok ? "정답" : "오답 · 정답은 " + c.rightText(), ok);
+        }
+      });
+      doc.gap(6);
+    });
+    doc.pageBreak();
+    doc.h1("정답과 해설");
+    var qj = 0;
+    SHEET.forEach(function (stepDef) {
+      stepDef.items.forEach(function () {
+        var c = ctrls[qj++];
+        if (!c.def.why) return;
+        doc.h2(c.no + ". " + stripTags(c.def.q));
+        doc.p(stripTags(c.def.why), { size: 21, lh: 30, color: "#111827" });
+        doc.gap(4);
+      });
+    });
+    return doc.finish();
+  }
+
+  function stripTags(s) {
+    return String(s || "").replace(/<br\s*\/?>/gi, " ").replace(/&nbsp;/g, " ").replace(/<[^>]+>/g, "");
+  }
+
+  function applyLockState() {
+    document.body.classList.toggle("locked", submitted);
+    document.getElementById("btnClear").classList.toggle("hidden", submitted);
+    document.getElementById("btnPdf").textContent = submitted ? "PDF 다시 받기" : "PDF로 저장하기";
+    document.getElementById("btnAnswers").textContent =
+      submitted ? "정답·해설 모두 보기" : "정답 확인 (PDF 저장 후 열림) 🔒";
+    if (submitted) {
+      var sc = score(), band = document.getElementById("scoreBand");
+      band.classList.remove("hidden");
+      band.textContent = "✅ 제출했습니다 · 자동 채점 " + sc.got + " / " + sc.all +
+                         " (서술·표는 선생님이 읽습니다)";
+      document.getElementById("saveMsg").textContent = "제출이 끝났습니다. 정답과 해설을 확인하세요.";
+      ctrls.forEach(function (c) { if (c.lock) c.lock(); });
+    }
+  }
+
+  function revealAnswers() {
+    ctrls.forEach(function (c) {
+      if (c.markAnswer) c.markAnswer();
+      if (!c.def.why) return;
+      var ok = c.grade ? c.grade() : null;
+      c.ansBox.className = "ans " + (ok === null ? "ok" : (ok ? "ok" : "no"));
+      c.ansBox.innerHTML = (ok === null ? "💡 <b>이렇게 생각해 보세요</b><br>"
+                                        : (ok ? "⭕ <b>정답입니다.</b><br>" : "❌ <b>정답은 「" + c.rightText() + "」 입니다.</b><br>"))
+                           + c.def.why;
+      c.ansBox.classList.remove("hidden");
+    });
+  }
+
+  function bind() {
+    document.getElementById("btnPdf").addEventListener("click", function () {
+      if (submitted) {
+        if (!lastInfo || !lastPages) return;
+        K.downloadBlob(K.buildPdf(lastPages), K.makeFileName("전자기력학습지", lastInfo));
+        K.toast("다시 내려받았습니다.", "ok");
+        return;
+      }
+      if (!confirm("PDF로 저장하면 답을 고칠 수 없고 정답이 열립니다.\n다 썼는지 확인했나요?")) return;
+      K.askStudentInfo({}, function (info) {
+        try {
+          var pages = makePdf(info);
+          lastInfo = info; lastPages = pages;
+          K.downloadBlob(K.buildPdf(pages), K.makeFileName("전자기력학습지", info));
+          submitted = true;
+          try { sessionStorage.removeItem("ef_worksheet"); } catch (e) {}
+          applyLockState(); revealAnswers();
+          K.toast("제출했습니다. 정답과 해설이 열렸습니다.", "ok");
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        } catch (err) {
+          K.toast("PDF를 만들지 못했습니다: " + err.message, "no");
+        }
+      });
+    });
+
+    document.getElementById("btnClear").addEventListener("click", function () {
+      if (submitted) return;
+      if (!confirm("쓴 내용을 모두 지울까요?")) return;
+      ctrls.forEach(function (c) { c.set(c.def.type === "choice" || c.def.type === "ox" ? -1 : ""); });
+      try { sessionStorage.removeItem("ef_worksheet"); } catch (e) {}
+    });
+
+    document.getElementById("btnAnswers").addEventListener("click", function () {
+      if (!submitted) { K.toast("정답은 PDF로 저장(제출)한 뒤에 열립니다.", "warn"); return; }
+      revealAnswers();
+      K.toast("정답과 해설을 모두 열었습니다.", "ok");
+    });
+  }
+
+  /* ---------------------------------------------------------
+     🔑 정답지 (선생님용) — worksheet.html?key
+     --------------------------------------------------------- */
+  function keyAnswerHtml(c) {
+    var it = c.def;
+    if (it.type === "tbl") {
+      if (typeof it.keyAns === "string") return it.keyAns;
+      if (!it.keyAns) return "<i>실험실에서 읽은 값</i>";
+      return it.keyAns.map(function (row, ri) {
+        return it.rows[ri] + " — " + row.join(" / ");
+      }).join("<br>");
+    }
+    if (it.type === "text") return "<i>서술형</i> · " + stripTags(it.why || "");
+    return c.rightText ? c.rightText() : "—";
+  }
+
+  function buildKey() {
+    document.body.classList.add("keymode");
+    document.title = "전자기력 학습지 정답지";
+    var top = document.querySelector(".top h1");
+    if (top) top.textContent = "🔑 전자기력 학습지 — 정답지";
+
+    var host = document.getElementById("keySheet");
+    var cur = -1, list = null;
+    ctrls.forEach(function (c) {
+      if (c.step !== cur) {
+        cur = c.step;
+        host.appendChild(el("div", "kstep", SHEET[cur].step));
+        list = el("div", "klist");
+        host.appendChild(list);
+      }
+      var row = el("div", "krow");
+      row.appendChild(el("span", "kno", String(c.no)));
+      var body = el("div", "kbody");
+      body.appendChild(el("div", "kq", stripTags(c.def.q)));
+      body.appendChild(el("div", "ka", keyAnswerHtml(c)));
+      if (c.def.why && c.def.type !== "text") {
+        body.appendChild(el("div", "kwhy", stripTags(c.def.why)));
+      }
+      row.appendChild(body);
+      list.appendChild(row);
+    });
+
+    function toggle(id, cls) {
+      var box = document.getElementById(id);
+      box.addEventListener("change", function () {
+        document.body.classList.toggle(cls, box.checked);
+      });
+    }
+    toggle("kQ", "showq");
+    toggle("kWhy", "showwhy");
+    document.getElementById("kPrint").addEventListener("click", function () { window.print(); });
+  }
+
+  build(); bind(); applyLockState();
+  if (/(^|[?&])key(=|&|$)/.test(location.search)) buildKey();
+
+  window.EFSheet = {
+    buildKey: buildKey, keyAnswerHtml: keyAnswerHtml,
+    ctrls: ctrls, score: score, makePdf: makePdf, SHEET: SHEET,
+    isSubmitted: function () { return submitted; },
+    forceSubmit: function (info) {
+      var pages = makePdf(info); lastInfo = info; lastPages = pages;
+      submitted = true; applyLockState(); revealAnswers();
+      return pages;
+    }
+  };
+})();
+</script>
+</body>
+</html>
