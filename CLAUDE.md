@@ -64,6 +64,34 @@ C:\김미란(2023.11.20)\학습자료(2023.11.20)\2024.2학년\2. 전기와 자�
 ### 자료 값 (학습지에 없어 이 앱이 정한 것)
 전원 6 V · 저항 1~6 Ω(0.5 단위) → 전류 1~6 A · 자석 1~3개 · 코일 감은 수 6회 · 힘 1칸 = 1 A × 자석 1개.
 
+### 🌐 배포 — GitHub Pages (2026-09-19 부터)
+
+**학생은 GitHub 를 만지지 않는다. 주소 하나만 받는다.**
+
+| 무엇 | 값 |
+|---|---|
+| 저장소 | https://github.com/science-creator/electromagnetic-force (**공개**) |
+| 실험실 | https://science-creator.github.io/electromagnetic-force/ |
+| 학습지 | https://science-creator.github.io/electromagnetic-force/worksheet.html |
+| 선생님용 | https://science-creator.github.io/electromagnetic-force/teacher.html |
+| 정답지 | https://science-creator.github.io/electromagnetic-force/worksheet.html?key |
+
+> ⚠ 저장소가 공개라 **정답지 주소를 아는 사람은 누구나 정답을 본다.** 학생에게는 알리지 않는다(다른 앱도 같다).
+> ⚠ 학습지는 선생님 검토 전이다. 학생에게 주소를 알리는 것은 검토 뒤에.
+> ⚠ 첫 배포는 Pages 를 켠 뒤 **1~2분** 걸린다(처음 확인했을 때 잠깐 404 였다).
+
+빌드가 없고 외부 의존성이 0개라 저장소의 파일이 그대로 웹 주소가 된다(`server.py` 는 로컬 확인용).
+Pages 설정은 Source `Deploy from a branch` · `main` · `/ (root)`.
+배포본에서도 실험실이 돌고(힘 방향 · 크기) 선생님 표 4칸이 그대로 나오는 것, 콘솔 오류 없음을 확인했다.
+
+#### 고친 것을 반영하는 방법
+
+```bash
+git add .
+git commit -m "무엇을 고쳤는지 한 줄"
+git push
+```
+
 ## ② 기능 목록
 
 | 파일 | 설명 |
@@ -132,7 +160,7 @@ C:\김미란(2023.11.20)\학습자료(2023.11.20)\2024.2학년\2. 전기와 자�
 - [ ] 종이로 한 번 뽑아 글자·그림 크기 확인
 - [ ] 같은 단원의 남은 소단원 — **(1) 전기 (마찰전기 · 전류·전압·저항)** 는 `Electricity` 앱과의 관계를 확인
 - [ ] 3학년 `electromagnetic-induction` 과 서로 링크 (전동기 ↔ 발전기)
-- [ ] GitHub 저장소 · Pages 는 **아직 안 만들었다** (요청 시)
+- [x] GitHub 공개 + Pages 배포 (2026-09-19) — 여덟 주소가 열리고 배포본에서 동작하는 것까지 확인함
 
 ## 코드 메모
 - **정답을 손으로 적지 말 것.** 학습지의 방향 정답은 `mk(list, correct)` 에 `circ()` · `upDown()` · `spin()` 결과를 넣어 만든다.
